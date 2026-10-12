@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BovineMed - Cattle Doctor Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Navigation & Role Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">🐮</div>
+        <div>
+          <h1>BovineMed <span>Pro</span></h1>
+          <p class="brand-subtitle">Cattle Tele-Veterinary & Territory Management</p>
+        </div>
+      </div>
+
+      <div class="role-selector-bar">
+        <span class="role-label">Active Role:</span>
+        <button class="role-btn active" data-role="FARMER" id="btnRoleFarmer">
+          <span class="dot farmer-dot"></span> Sub-Zone Farmer
+        </button>
+        <button class="role-btn" data-role="DOCTOR" id="btnRoleDoctor">
+          <span class="dot doctor-dot"></span> Assigned Doctor
+        </button>
+        <button class="role-btn" data-role="ADMIN" id="btnRoleAdmin">
+          <span class="dot admin-dot"></span> Territory Admin
+        </button>
+      </div>
+
+      <div class="user-badge" id="currentUserBadge">
+        <div class="avatar" id="userAvatar">RK</div>
+        <div class="user-info">
+          <strong id="userName">Rahim Khan</strong>
+          <small id="userSubtext">Green Valley Dairy • Sub-Zone N1</small>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Territory & E-Zone Breadcrumb Banner -->
+  <section class="territory-banner">
+    <div class="container banner-flex">
+      <div class="territory-path" id="territoryPath">
+        <span class="crumb tag-zone">📍 E-Zone: <strong>Northern Dairy Zone</strong></span>
+        <span class="separator">/</span>
+        <span class="crumb tag-subzone">Area: <strong>River Valley Sector (Sub-Zone N1)</strong></span>
+        <span class="separator">/</span>
+        <span class="crumb tag-farm">Firm: <strong>Green Valley Dairy Firm</strong></span>
+      </div>
+      <div class="system-status-pills">
+        <span class="pill pill-fastapi">⚡ FastAPI Microservice: Ready</span>
+        <span class="pill pill-db">🐘 PostgreSQL: Connected</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Application Body -->
+  <main class="container main-content">
+
+    <!-- 1. FARMER PORTAL VIEW -->
+    <div id="viewFarmer" class="view-panel active">
+      <div class="section-header">
+        <div>
+          <h2>Submit Cow Problem to Doctor</h2>
+          <p>Send text symptoms, audio sounds, picture, cow size & weight directly to your assigned Sub-Zone Veterinarian.</p>
+        </div>
+      </div>
+
+      <div class="grid-layout">
+        <!-- Left: Consultation Submission Form -->
+        <div class="card form-card">
+          <form id="consultationForm" enctype="multipart/form-data">
+            <h3 class="card-title">🩺 New Consultation Ticket</h3>
+            
+            <!-- Cattle Selector / Details -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="selectCattle">Select Cattle from Firm Herd:</label>
+                <select id="selectCattle" class="form-control" required>
+                  <option value="">-- Choose Cow --</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label for="cattleBreed">Breed:</label>
+                <input type="text" id="cattleBreed" class="form-control" readonly placeholder="Auto-filled">
+              </div>
+            </div>
+
+            <!-- Size and Weight (Required by Policy) -->
+            <div class="form-row highlight-box">
+              <div class="form-group flex-1">
+                <label for="cowWeight">⚖️ Cow Weight (kg): <span class="required">*</span></label>
+                <input type="number" step="0.5" id="cowWeight" class="form-control" required placeholder="e.g. 465.0">
+                <small class="helper-text">Crucial for medication dosage calibration</small>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="cowSize">📏 Cow Size & Frame: <span class="required">*</span></label>
+                <input type="text" id="cowSize" class="form-control" required placeholder="e.g. Large (Height: 142cm, Girth: 195cm)">
+                <small class="helper-text">Physical body measurements</small>
+              </div>
+            </div>
+
+            <!-- Symptoms Text Description -->
+            <div class="form-group">
+              <label for="symptomsText">📝 Problem Description & Symptoms: <span class="required">*</span></label>
+              <textarea id="symptomsText" rows="4" class="form-control" required placeholder="Describe what is wrong with the cow (e.g. stopped feeding, fever, cough, nasal discharge, rumination frequency)..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="problemDuration">Duration of Illness:</label>
+                <select id="problemDuration" class="form-control">
+                  <option value="1">1 Day (Acute)</option>
+                  <option value="2" selected>2 Days</option>
+                  <option value="3">3 - 5 Days</option>
+                  <option value="7">More than 1 week</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Assigned Doctor for Sub-Zone:</label>
+                <div class="assigned-doc-box" id="assignedDocNotice">
+                  <strong>Dr. Sarah Connor (DVM)</strong>
+                  <small>River Valley Sector Vet</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Media Uploads: Cow Picture & Cow Audio -->
+            <div class="media-upload-grid">
+              <!-- Picture Upload -->
+              <div class="upload-tile">
+                <label class="tile-label">📷 Cow Picture (Lesion, Head, Udder, Wound):</label>
+                <input type="file" id="pictureInput" name="picture" accept="image/*" class="file-hidden">
+                <div class="file-dropzone" id="pictureDropzone">
+                  <span class="upload-icon">🖼️</span>
+                  <p id="picFileName">Choose image or drag here</p>
+                  <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('pictureInput').click()">Browse Photo</button>
+                </div>
+                <div id="imagePreviewContainer" class="preview-box hidden">
+                  <img id="imagePreview" src="" alt="Cow Preview">
+                </div>
+              </div>
+
+              <!-- Audio Upload -->
+              <div class="upload-tile">
+                <label class="tile-label">🎙️ Cow Audio (Breathing, Cough, Moan):</label>
+                <input type="file" id="audioInput" name="audio" accept="audio/*" class="file-hidden">
+                <div class="file-dropzone" id="audioDropzone">
+                  <span class="upload-icon">🔊</span>
+                  <p id="audioFileName">Choose audio recording or wav/mp3</p>
+                  <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('audioInput').click()">Browse Audio</button>
+                </div>
+                <div id="audioPreviewContainer" class="preview-box hidden">
+                  <audio id="audioPreview" controls></audio>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg" id="btnSubmitConsultation">
+                🚀 Send Problem to Doctor
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right: Farmer's Submitted Consultation Tickets -->
+        <div class="card tickets-card">
+          <div class="card-header-flex">
+            <h3 class="card-title">📋 My Submitted Tickets & Prescriptions</h3>
+            <button class="btn btn-sm btn-outline" id="btnRefreshFarmerTickets">🔄 Refresh</button>
+          </div>
+          <div id="farmerTicketsList" class="tickets-container">
+            <div class="loading-state">Loading your consultation tickets...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. DOCTOR PORTAL VIEW -->
+    <div id="viewDoctor" class="view-panel">
+      <div class="section-header doc-header-box">
+        <div>
+          <h2>Doctor Diagnostic & Prescription Workstation</h2>
+          <p id="doctorTerritoryHeader">Logged in as: <strong>Dr. Sarah Connor (DVM)</strong> • Assigned Territory: <strong>River Valley Sector (Sub-Zone N1)</strong></p>
+        </div>
+        <div class="filter-controls">
+          <button class="filter-btn active" data-filter="ALL">All Tickets</button>
+          <button class="filter-btn" data-filter="PENDING">Pending Review</button>
+          <button class="filter-btn" data-filter="DIAGNOSED">Diagnosed</button>
+        </div>
+      </div>
+
+      <div class="doc-workstation-grid">
+        <!-- Left: Ticket Queue -->
+        <div class="card queue-card">
+          <h3 class="card-title">📥 Sub-Zone Case Inbox (<span id="ticketCount">0</span>)</h3>
+          <div id="doctorQueueList" class="queue-list">
+            <div class="loading-state">Loading patient queue...</div>
+          </div>
+        </div>
+
+        <!-- Right: Detailed Case Review & Prescription Form -->
+        <div class="card review-card" id="caseReviewPanel">
+          <div class="empty-selection-placeholder" id="noCaseSelected">
+            <div class="placeholder-icon">🩺</div>
+            <h3>Select a consultation case from the inbox to review</h3>
+            <p>You can listen to audio recordings, examine cow photos, check size/weight, and write prescriptions.</p>
+          </div>
+
+          <div id="caseDetailsContent" class="case-details hidden">
+            <!-- Case details will be injected by app.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. TERRITORY / ADMIN VIEW -->
+    <div id="viewAdmin" class="view-panel">
+      <div class="section-header">
+        <div>
+          <h2>Territory Hierarchy Overview</h2>
+          <p>E-Zone ➔ Sub-Zone ➔ Firm Structure and Doctor Coverage.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">🗺️ Zone & Sub-Zone Network Directory</h3>
+        <div id="hierarchyTree" class="tree-container">
+          <div class="loading-state">Loading hierarchy network...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal for Full Prescription View -->
+  <div id="prescriptionModal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>📄 Official Veterinary Prescription</h3>
+        <button class="close-modal-btn" onclick="closePrescriptionModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="prescriptionModalContent"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <p>BovineMed Tele-Veterinary Platform • Node.js Express API & FastAPI Microservice with PostgreSQL</p>
+      <p class="footer-meta">Zone ➔ Sub-Zone ➔ Firm Consultation Policy</p>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
